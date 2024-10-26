@@ -1,6 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { notFound } from "next/navigation";
 
 const isOnboardingRoute = createRouteMatcher(["/onboarding"]);
 const isPublicRoute = createRouteMatcher([
@@ -17,12 +16,6 @@ export default clerkMiddleware(
       console.log("sessionClaims", sessionClaims);
       console.log("is public route", isPublicRoute(req));
 
-      // if user is not signed in, redirect to 404
-      if (!userId) {
-        console.log("user not signed in, redirecting to 404");
-        return notFound();
-      }
-
       // For users visiting /onboarding, don't try to redirect
       if (userId && isOnboardingRoute(req)) {
         return NextResponse.next();
@@ -31,7 +24,7 @@ export default clerkMiddleware(
       if (!isPublicRoute(req)) auth.protect();
 
       // Catch users who do not have `onboardingComplete: true` in their publicMetadata
-      // Redirect them to the /onboading route to complete onboarding
+      // Redirect them to the /onboarding route to complete onboarding
       if (userId && !sessionClaims?.metadata?.onboardingComplete) {
         console.log("redirecting to onboarding");
         const onboardingUrl = new URL("/onboarding", req.url);
@@ -42,7 +35,7 @@ export default clerkMiddleware(
       if (userId && !isPublicRoute(req)) return NextResponse.next();
     } catch (error) {
       console.log(error);
-      auth.protect();
+      // auth.protect();
     }
   }
   // { debug: process.env.NODE_ENV === "development" }
